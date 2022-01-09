@@ -353,8 +353,6 @@ class ReImportAPI(ImportAPI):
                 
                 download_url = "http://" + request.get_host() + label_task.data["image"]
 
-                print(request.get_host())
-
                 payload = json.dumps({
                 "presigned_url": download_url
                 })
