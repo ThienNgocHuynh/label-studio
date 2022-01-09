@@ -39,11 +39,7 @@ export const ProjectsPage = () => {
   const fetchProjects = async (page  = currentPage, pageSize = defaultPageSize) => {
     setNetworkState('loading');
     let data;
-    let workspaces = localStorage.getItem('workspace-id');
-
-    if (!Number.isInteger(workspaces)){
-      workspaces = -1;
-    }
+    const workspaces = localStorage.getItem('workspace-id');
 
     if (config.user.is_superuser === "False" && config.user.is_staff === "False"){
       data = await api.callApi("projects", {

@@ -132,6 +132,7 @@ class ProjectListAPI(generics.ListCreateAPIView):
     def get_queryset(self):
         active_project = self.request.query_params.get("active_project")
         workspaces = self.request.query_params.get("workspaces")
+        print(workspaces)
         if workspaces != None:
             project_workspace = ProjectWorkspace.objects.filter(workspace_id=workspaces)
             project_list = []
