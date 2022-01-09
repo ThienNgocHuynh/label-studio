@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams as useRouterParams } from 'react-router';
+import { useHistory, useParams as useRouterParams } from 'react-router';
 import { Redirect } from 'react-router-dom';
 import { Button } from '../../components';
 import { Oneof } from '../../components/Oneof/Oneof';
@@ -10,8 +10,11 @@ import { Block, Elem } from '../../utils/bem';
 import { CreateProject } from '../CreateProject/CreateProject';
 import { DataManagerPage } from '../DataManager/DataManager';
 import { SettingsPage } from '../Settings';
+import { useAPI } from '../../providers/ApiProvider';
 import './Projects.styl';
 import { EmptyProjectsList, ProjectsList } from './ProjectsList';
+import { confirm } from '../../components/Modal/Modal';
+import { useConfig } from '../../providers/ConfigProvider';
 
 const getCurrentPage = () => {
   const pageNumberFromURL = new URLSearchParams(location.search).get("page");
@@ -31,12 +34,27 @@ export const ProjectsPage = () => {
   const [modal, setModal] = React.useState(false);
   const openModal = setModal.bind(null, true);
   const closeModal = setModal.bind(null, false);
+  const config = useConfig();
 
   const fetchProjects = async (page  = currentPage, pageSize = defaultPageSize) => {
     setNetworkState('loading');
-    const data = await api.callApi("projects", {
-      params: { page, page_size: pageSize },
-    });
+    let data;
+    let workspaces = localStorage.getItem('workspace-id');
+
+    if (!Number.isInteger(workspaces)){
+      workspaces = -1;
+    }
+
+    if (config.user.is_superuser === "False" && config.user.is_staff === "False"){
+      data = await api.callApi("projects", {
+        params: { page, page_size: pageSize, workspaces: workspaces || -1, active_project: config.user.active_project },
+      });
+    }
+    else{
+      data = await api.callApi("projects", {
+        params: { page, page_size: pageSize, workspaces: workspaces || -1 },
+      });
+    }
 
     setTotalItems(data?.count ?? 1);
     setProjectsList(data.results ?? []);
@@ -76,7 +94,7 @@ export const ProjectsPage = () => {
           ) : (
             <EmptyProjectsList openModal={openModal} />
           )}
-          {modal && <CreateProject onClose={closeModal} />}
+          {modal &&  <CreateProject onClose={closeModal} />}
         </Elem>
       </Oneof>
     </Block>
@@ -103,6 +121,46 @@ ProjectsPage.routes = ({ store }) => [
   },
 ];
 ProjectsPage.context = ({ openModal, showButton }) => {
-  if (!showButton) return null;
-  return <Button onClick={openModal} look="primary" size="compact">Create</Button>;
+  const config = useConfig();
+  const [processing, setProcessing] = useState(null);
+  const api = useAPI();
+  const history = useHistory();
+  const handleOnClick = (type) => () => {
+    console.log(111);
+    confirm({
+      title: "Action confirmation",
+      body: "You're about to delete all things. This action cannot be undone.",
+      okText: "Proceed",
+      buttonLook: "destructive",
+      onOk: async () => {
+        setProcessing(type);
+        await api.callApi('deleteWorkspaceList', {
+          params: {
+            pk: localStorage.getItem('workspace-id'),
+          },
+        });
+        localStorage.setItem('workspace-id', -1);
+        localStorage.setItem('workspace-name', '');
+        history.replace('');
+        history.go(0);
+        setProcessing(null);
+      },
+    });
+  };
+  const waiting = processing === 'workspace';
+  const disabled = (processing && !waiting);
+  const type = 'workspaces';
+
+  // if (!showButton) return null;
+  return ( 
+    <>
+      {( !(config.user.is_superuser === "False" && config.user.is_staff === "False") && (
+        <><Button style={{ "marginRight": "1rem" }} key={type} look="danger" disabled={disabled} waiting={waiting} onClick={handleOnClick()}>
+  Delete Workspace
+        </Button>
+        <Button onClick={openModal} look="primary" size="compact">Create</Button></>
+      )
+      )}
+    </>
+  );
 };

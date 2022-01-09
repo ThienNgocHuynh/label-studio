@@ -24,10 +24,10 @@ from rest_framework.views import exception_handler
 from core.utils.common import conditional_atomic, temporary_disconnect_all_signals
 from core.label_config import config_essential_data_has_changed
 from projects.models import (
-    Project, ProjectSummary, ProjectManager
+    Project, ProjectSummary, ProjectManager, ProjectWorkspace, ProjectWorkspaceList
 )
 from projects.serializers import (
-    ProjectSerializer, ProjectLabelConfigSerializer, ProjectSummarySerializer
+    ProjectSerializer, ProjectLabelConfigSerializer, ProjectSummarySerializer, ProjectWorkspaceSerializer, ProjectWorkspaceListSerializer
 )
 from tasks.models import Task, Annotation, Prediction, TaskLock
 from tasks.serializers import TaskSerializer, TaskSimpleSerializer, TaskWithAnnotationsAndPredictionsAndDraftsSerializer
@@ -130,7 +130,21 @@ class ProjectListAPI(generics.ListCreateAPIView):
     pagination_class = ProjectListPagination
 
     def get_queryset(self):
-        projects = Project.objects.filter(organization=self.request.user.active_organization)
+        active_project = self.request.query_params.get("active_project")
+        workspaces = self.request.query_params.get("workspaces")
+        if workspaces != None:
+            project_workspace = ProjectWorkspace.objects.filter(workspace_id=workspaces)
+            project_list = []
+            for project in project_workspace:
+                project_list.append(project.project_id)
+            if str(active_project) != "None":
+                integer_map = map(int, active_project.split(","))
+                integer_list = list(integer_map)
+                project_list = list(set(project_list).intersection(integer_list))
+            
+            projects = Project.objects.filter(organization=self.request.user.active_organization, id__in=project_list)
+        else:
+            projects = Project.objects.all()
         return ProjectManager.with_counts_annotate(projects)
 
     def get_serializer_context(self):
@@ -572,6 +586,55 @@ class ProjectSummaryAPI(generics.RetrieveAPIView):
     def get(self, *args, **kwargs):
         return super(ProjectSummaryAPI, self).get(*args, **kwargs)
 
+class ProjectWorkspaceAPI(generics.ListCreateAPIView):
+    serializer_class = ProjectWorkspaceSerializer
+    queryset = ProjectWorkspace.objects.all()
+
+    def get_queryset(self):
+        queryset = ProjectWorkspace.objects.all()
+        query = self.request.query_params.get("query")
+        active_project = self.request.query_params.get("active_project")
+
+        if query is not None:
+            if str(active_project) != "None":
+                integer_map = map(int, active_project.split(","))
+                integer_list = list(integer_map)
+                return queryset.filter(workspace_id=query, project_id__in=integer_list)
+            else:
+                return queryset.filter(workspace_id=query)
+
+        return queryset
+
+class ProjectWorkspaceListAPI(generics.ListCreateAPIView, generics.DestroyAPIView):
+    serializer_class = ProjectWorkspaceListSerializer
+    queryset = ProjectWorkspaceList.objects.all()
+
+    def get_queryset(self):
+        queryset = ProjectWorkspaceList.objects.all()
+        query = self.request.query_params.get("query")
+        active_project = self.request.query_params.get("active_project")
+
+        if query is not None:
+            if str(active_project) != "None":
+                integer_map = map(int, active_project.split(","))
+                integer_list = list(integer_map)
+                queryList = ProjectWorkspace.objects.filter(project_id__in=integer_list)
+                queryWorkspaceList = []
+                for each in queryList:
+                    if each.workspace_id not in queryWorkspaceList:
+                        queryWorkspaceList.append(each.workspace_id)
+                return queryset.filter(id__in=queryWorkspaceList)
+            else:
+                if self.request.user.is_superuser == False and self.request.user.is_staff == False:
+                    return []
+                else:
+                    return queryset.filter(workspace__icontains=query)
+
+        return queryset
+
+    def delete(self, request, *args, **kwargs):
+        ProjectWorkspaceList.objects.filter(id=self.kwargs['pk']).delete()
+        return Response(data={}, status=204)
 
 @method_decorator(name='delete', decorator=swagger_auto_schema(
         tags=['Projects'],

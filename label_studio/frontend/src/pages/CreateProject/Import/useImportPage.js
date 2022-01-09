@@ -28,8 +28,11 @@ export const useImportPage = (project) => {
       body: {
         file_upload_ids: fileIds,
         files_as_tasks_list: csvHandling === 'tasks',
+        detection: localStorage.getItem('detection'),
       },
     });
+
+    localStorage.setItem('detection', 0);
 
     setUploadingStatus(false);
     return imported;

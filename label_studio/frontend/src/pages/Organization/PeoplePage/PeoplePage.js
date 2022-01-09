@@ -13,6 +13,7 @@ import "./PeopleInvitation.styl";
 import { PeopleList } from "./PeopleList";
 import "./PeoplePage.styl";
 import { SelectedUser } from "./SelectedUser";
+import { useHistory } from "react-router";
 
 const InvitationModal = ({ link }) => {
   return (
@@ -34,6 +35,7 @@ export const PeoplePage = () => {
   const api = useAPI();
   const inviteModal = useRef();
   const config = useConfig();
+  const history = useHistory();
   const [selectedUser, setSelectedUser] = useState(null);
 
   const [link, setLink] = useState();
@@ -89,9 +91,13 @@ export const PeoplePage = () => {
     bareFooter: true,
   }), []);
 
-  const showInvitationModal = useCallback(() => {
-    inviteModal.current = modal(inviteModalProps(link));
-  }, [inviteModalProps, link]);
+  // const showInvitationModal = useCallback(() => {
+  //   inviteModal.current = modal(inviteModalProps(link));
+  // }, [inviteModalProps, link]);
+
+  const goToSignUpPage = () => {
+    history.push("/user/signup/");
+  };
 
   const defaultSelected = useMemo(() => {
     return localStorage.getItem('selectedUser');
@@ -114,9 +120,9 @@ export const PeoplePage = () => {
           <Space></Space>
 
           <Space>
-            <Button icon={<LsPlus/>} primary onClick={showInvitationModal}>
+            {/* <Button icon={<LsPlus/>} primary onClick={goToSignUpPage}>
               Add People
-            </Button>
+            </Button> */}
           </Space>
         </Space>
       </Elem>

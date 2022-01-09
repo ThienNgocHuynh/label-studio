@@ -4,6 +4,7 @@ export const API_CONFIG = {
   endpoints: {
     // Users
     users: "/users",
+    usersUpdate: "PATCH:/users/:pk",
     me: "/current-user/whoami",
 
     // Organization
@@ -13,9 +14,13 @@ export const API_CONFIG = {
 
     // Project
     projects: "/projects",
+    workspaces: "GET:/projects/workspaces-list",
+    createWorkspaceList: "POST:/projects/workspaces-list",
+    deleteWorkspaceList: "DELETE:/projects/workspaces-list/:pk",
     project: "/projects/:pk",
     updateProject: "PATCH:/projects/:pk",
     createProject: "POST:/projects",
+    createWorkspace: "POST:/projects/workspaces",
     deleteProject: "DELETE:/projects/:pk",
 
     // Config and Import

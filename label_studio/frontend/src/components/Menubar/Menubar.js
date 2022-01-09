@@ -7,10 +7,12 @@ import { cn } from '../../utils/bem';
 import { absoluteURL } from '../../utils/helpers';
 import { Breadcrumbs } from '../Breadcrumbs/Breadcrumbs';
 import { Dropdown } from "../Dropdown/Dropdown";
+import { AsyncSelect } from '../AsyncSelect/AsyncSelect';
 import { Hamburger } from "../Hamburger/Hamburger";
 import { Menu } from '../Menu/Menu';
 import { Userpic } from '../Userpic/Userpic';
 import { VersionNotifier, VersionProvider } from '../VersionNotifier/VersionNotifier';
+import { Button } from '..';
 import './Menubar.styl';
 import './MenuContent.styl';
 import './MenuSidebar.styl';
@@ -168,51 +170,58 @@ export const Menubar = ({
               style={{width: 240}}
             >
               <Menu>
-                <Menu.Item
+                {/* <Menu.Item
                   label="Projects"
                   to="/projects"
                   icon={<IconFolder/>}
                   data-external
                   exact
-                />
-                <Menu.Item
-                  label="Organization"
-                  to="/organization"
-                  icon={<IconPersonInCircle/>}
-                  data-external
-                  exact
-                />
+                /> */}
+                <h3 htmlFor="async_select">Workspace</h3>
+        
+                <AsyncSelect/>
 
                 <Menu.Spacer/>
 
                 <VersionNotifier showNewVersion/>
+                
+                {( !(config.user.is_superuser === "False" && config.user.is_staff === "False") && (
+                  <><Menu.Item
+                    label="Organization"
+                    to="/organization"
+                    icon={<IconPersonInCircle/>}
+                    data-external
+                    exact
+                  />
+                  <Menu.Item
+                    label="API"
+                    href="/docs/api"
+                    icon={<IconTerminal/>}
+                    target="_blank"
+                  />
+                  <Menu.Item
+                    label="Docs"
+                    href="https://labelstud.io/guide"
+                    icon={<IconBook/>}
+                    target="_blank"
+                  />
+                  <Menu.Item
+                    label="GitHub"
+                    href="https://github.com/heartexlabs/label-studio"
+                    icon={<LsGitHub/>}
+                    target="_blank"
+                  />
+                  <Menu.Item
+                    label="Slack Community"
+                    href="http://slack.labelstud.io.s3-website-us-east-1.amazonaws.com?source=product-menu"
+                    icon={<LsSlack/>}
+                    target="_blank"
+                  />
 
-                <Menu.Item
-                  label="API"
-                  href="/docs/api"
-                  icon={<IconTerminal/>}
-                  target="_blank"
-                />
-                <Menu.Item
-                  label="Docs"
-                  href="https://labelstud.io/guide"
-                  icon={<IconBook/>}
-                  target="_blank"
-                />
-                <Menu.Item
-                  label="GitHub"
-                  href="https://github.com/heartexlabs/label-studio"
-                  icon={<LsGitHub/>}
-                  target="_blank"
-                />
-                <Menu.Item
-                  label="Slack Community"
-                  href="http://slack.labelstud.io.s3-website-us-east-1.amazonaws.com?source=product-menu"
-                  icon={<LsSlack/>}
-                  target="_blank"
-                />
-
-                <VersionNotifier showCurrentVersion/>
+                  <VersionNotifier showCurrentVersion/>
+                  </>
+                )
+                )}
 
                 <Menu.Divider/>
 

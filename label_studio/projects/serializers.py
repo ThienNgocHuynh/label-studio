@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework.serializers import SerializerMethodField
 from users.serializers import UserSimpleSerializer
 
-from projects.models import Project, ProjectOnboarding, ProjectSummary
+from projects.models import Project, ProjectOnboarding, ProjectSummary, ProjectWorkspace, ProjectWorkspaceList
 
 
 class CreatedByFromContext:
@@ -92,6 +92,15 @@ class ProjectSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             self.instance.validate_config(value)
         return value
 
+class ProjectWorkspaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectWorkspace
+        fields = '__all__'
+
+class ProjectWorkspaceListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectWorkspaceList
+        fields = '__all__'
 
 class ProjectOnboardingSerializer(serializers.ModelSerializer):
     class Meta:

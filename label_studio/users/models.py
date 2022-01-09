@@ -103,6 +103,8 @@ class User(UserMixin, AbstractBaseUser, PermissionsMixin, UserLastActivityMixin)
 
     active_organization = models.ForeignKey('organizations.Organization', on_delete=models.SET_NULL, related_name='active_users', null=True)
 
+    active_project = models.TextField(null=True)
+
     objects = UserManager()
 
     EMAIL_FIELD = 'email'

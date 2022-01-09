@@ -5,6 +5,12 @@ import { unique } from '../../../utils/helpers';
 import "./Import.styl";
 import { IconUpload, IconInfo, IconError } from '../../../assets/icons';
 import { useAPI } from '../../../providers/ApiProvider';
+import Select from 'react-select';
+
+const detectionOptions = [
+  { value: 0, label: 'Do not apply any detection' },
+  { value: 1, label: 'Sketch2Design' },
+];
 
 const importClass = cn("upload_page");
 const dropzoneClass = cn("dropzone");
@@ -264,6 +270,10 @@ export const ImportPage = ({
     onChange: e => setCsvHandling(e.target.value),
   };
 
+  const handleChange = (newValue, actionMeta) => {
+    localStorage.setItem('detection', newValue.value);
+  };
+
   return (
     <div className={importClass}>
       {highlightCsvHandling && <div className={importClass.elem("csv-splash")}/>}
@@ -279,6 +289,16 @@ export const ImportPage = ({
           <IconUpload width="16" height="16" className={importClass.elem("upload-icon")} />
           Upload {files.uploaded.length ? "More " : ""}Files
         </button>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        <Select
+          className="basic-single"
+          classNamePrefix="select"
+          defaultValue={detectionOptions[0]}
+          isSearchable={true}
+          name="color"
+          onChange={handleChange}
+          options={detectionOptions}
+        />
         <div className={importClass.elem("csv-handling").mod({ highlighted: highlightCsvHandling, hidden: !csvHandling })}>
           <span>Treat CSV/TSV as</span>
           <label><input {...csvProps} value="tasks" checked={csvHandling === "tasks"}/> List of tasks</label>

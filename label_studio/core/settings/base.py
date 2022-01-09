@@ -74,9 +74,9 @@ DATABASE_NAME = get_env('DATABASE_NAME', DATABASE_NAME_DEFAULT)
 DATABASES_ALL = {
     DJANGO_DB_POSTGRESQL: {
         'ENGINE': 'django.db.backends.postgresql',
-        'USER': get_env('POSTGRE_USER', 'postgres'),
-        'PASSWORD': get_env('POSTGRE_PASSWORD', 'postgres'),
-        'NAME': get_env('POSTGRE_NAME', 'postgres'),
+        'USER': get_env('POSTGRE_USER', 'label_studio_usr'),
+        'PASSWORD': get_env('POSTGRE_PASSWORD', 'label_studio_pwd'),
+        'NAME': get_env('POSTGRE_NAME', 'label_studio'),
         'HOST': get_env('POSTGRE_HOST', 'localhost'),
         'PORT': int(get_env('POSTGRE_PORT', '5432')),
     },

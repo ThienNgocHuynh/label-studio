@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { LsCross } from "../../../assets/icons";
 import { Button, Userpic } from "../../../components";
 import { Block, Elem } from "../../../utils/bem";
+import { useConfig } from "../../../providers/ConfigProvider";
 import "./SelectedUser.styl";
 
 const UserProjectsLinks = ({projects}) => {
@@ -19,6 +20,9 @@ const UserProjectsLinks = ({projects}) => {
 
 export const SelectedUser = ({ user, onClose }) => {
   const fullName = [user.first_name, user.last_name].filter(n => !!n).join(" ").trim();
+  const config = useConfig();
+
+  localStorage.setItem("current-user-id", user.id);
 
   return (
     <Block name="user-info">
@@ -43,7 +47,7 @@ export const SelectedUser = ({ user, onClose }) => {
         </Elem>
       )}
 
-      {!!user.created_projects.length && (
+      {!!user.created_projects.length && !(config.user.is_superuser === "False" && config.user.is_staff === "False")  && (
         <Elem name="section">
           <Elem name="section-title">Created Projects</Elem>
 

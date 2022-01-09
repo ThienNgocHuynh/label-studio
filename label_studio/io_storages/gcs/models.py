@@ -221,11 +221,12 @@ class GCSExportStorage(GCSStorageMixin, ExportStorage):
 
 @receiver(post_save, sender=Annotation)
 def export_annotation_to_gcs_storages(sender, instance, **kwargs):
-    project = instance.task.project
-    if hasattr(project, 'io_storages_gcsexportstorages'):
-        for storage in project.io_storages_gcsexportstorages.all():
-            logger.debug(f'Export {instance} to GCS storage {storage}')
-            storage.save_annotation(instance)
+    if instance.task != None:
+        project = instance.task.project
+        if hasattr(project, 'io_storages_gcsexportstorages'):
+            for storage in project.io_storages_gcsexportstorages.all():
+                logger.debug(f'Export {instance} to GCS storage {storage}')
+                storage.save_annotation(instance)
 
 
 class GCSImportStorageLink(ImportStorageLink):

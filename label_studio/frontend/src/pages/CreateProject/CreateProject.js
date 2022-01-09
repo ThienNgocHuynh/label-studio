@@ -81,8 +81,22 @@ export const CreateProject = ({ onClose }) => {
     });
     setWaitingStatus(false);
 
+
+
     if (response !== null) {
-      history.push(`/projects/${response.id}/data`);
+
+      setWaitingStatus(true);
+      const groupResponse = await api.callApi('createWorkspace',{
+        body: {
+          workspace: localStorage.getItem('workspace-id'),
+          project: project.id
+        },
+      });
+      setWaitingStatus(false);
+
+      if (groupResponse !== null) {
+        history.push(`/projects/${response.id}/data`);
+      }
     }
   }, [project, projectBody, finishUpload]);
 

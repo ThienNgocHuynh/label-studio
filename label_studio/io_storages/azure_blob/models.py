@@ -158,11 +158,12 @@ class AzureBlobExportStorage(ExportStorage, AzureBlobStorageMixin):
 
 @receiver(post_save, sender=Annotation)
 def export_annotation_to_azure_storages(sender, instance, **kwargs):
-    project = instance.task.project
-    if hasattr(project, 'io_storages_azureblobexportstorages'):
-        for storage in project.io_storages_azureblobexportstorages.all():
-            logger.debug(f'Export {instance} to Azure Blob storage {storage}')
-            storage.save_annotation(instance)
+    if instance.task != None:
+        project = instance.task.project
+        if hasattr(project, 'io_storages_azureblobexportstorages'):
+            for storage in project.io_storages_azureblobexportstorages.all():
+                logger.debug(f'Export {instance} to Azure Blob storage {storage}')
+                storage.save_annotation(instance)
 
 
 class AzureBlobImportStorageLink(ImportStorageLink):

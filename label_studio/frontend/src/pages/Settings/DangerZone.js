@@ -6,10 +6,12 @@ import { confirm } from "../../components/Modal/Modal";
 import { Space } from "../../components/Space/Space";
 import { Spinner } from "../../components/Spinner/Spinner";
 import { useAPI } from "../../providers/ApiProvider";
+import { useConfig } from "../../providers/ConfigProvider";
 import { useProject } from "../../providers/ProjectProvider";
 
 export const DangerZone = () => {
-  const {project} = useProject();
+  const config = useConfig();
+  const { project } = useProject();
   const api = useAPI();
   const history = useHistory();
   const [processing, setProcessing] = useState(null);
@@ -80,11 +82,17 @@ export const DangerZone = () => {
           {buttons.map((btn) => {
             const waiting = processing === btn.type;
             const disabled = btn.disabled || (processing && !waiting);
-            return (btn.disabled !== true) && (
-              <Button key={btn.type} look="danger" disabled={disabled} waiting={waiting} onClick={handleOnClick(btn.type)}>
-                {btn.label}
-              </Button>
-            );
+
+            if ((config.user.is_superuser === "False" && config.user.is_staff === "False") && btn.type === "project"){
+              return <></>;
+            }
+            else{
+              return (btn.disabled !== true) && (
+                <Button key={btn.type} look="danger" disabled={disabled} waiting={waiting} onClick={handleOnClick(btn.type)}>
+                  {btn.label}
+                </Button>
+              );
+            }
           })}
         </Space>
       ) : (

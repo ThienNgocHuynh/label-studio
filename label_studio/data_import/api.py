@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from ranged_fileresponse import RangedFileResponse
 
 from core.permissions import all_permissions, ViewClassPermission
@@ -21,13 +21,21 @@ from core.utils.common import retry_database_locked
 from core.utils.params import list_of_strings_from_request, bool_from_request
 from core.utils.exceptions import LabelStudioValidationErrorSentryIgnored
 from projects.models import Project
-from tasks.models import Task, Prediction
+from tasks.models import Task, Prediction, Annotation
+from tasks.serializers import AnnotationSerializer
 from .uploader import load_tasks
 from .serializers import ImportApiSerializer, FileUploadSerializer, PredictionSerializer
 from .models import FileUpload
 
 from webhooks.utils import emit_webhooks_for_instance
 from webhooks.models import WebhookAction
+
+import requests
+import urllib.request
+import cv2
+import numpy as np
+import json
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -334,6 +342,83 @@ class ReImportAPI(ImportAPI):
         project.summary.update_data_columns(tasks)
         # TODO: project.summary.update_created_annotations_and_labels
 
+        detection = self.request.data.get('detection')      
+
+        if int(detection) == 1:
+            label_tasks = Task.objects.filter(project_id=project, is_labeled=False)
+            for label_task in label_tasks:
+                label_task.is_labeled = True
+                label_task.save()
+                url = "http://AI-LB-stg-1214660361.us-east-1.elb.amazonaws.com/sketch-2-design"
+                
+                download_url = "http://" + request.get_host() + label_task.data["image"]
+
+                print(request.get_host())
+
+                payload = json.dumps({
+                "presigned_url": download_url
+                })
+                headers = {
+                    'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
+                    'Content-Type': 'application/json'
+                }
+
+                req = urllib.request.urlopen(download_url)
+                arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
+                img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+
+                download_height, download_width, _ = img.shape
+
+                label_response = requests.request("POST", url, headers=headers, data=payload)
+
+                result = json.loads(label_response.text)
+
+                labels = []
+
+                for label in result["labels"]:
+                    labels.append({
+                        "id": uuid.uuid4().hex[:10],
+                        "type": "rectanglelabels",
+                        "value": {
+                            "x": label["xmin"] * 100 / download_width,
+                            "y": label["ymin"] * 100 / download_height,
+                            "width": (label["xmax"] - label["xmin"]) * 100 / download_width,
+                            "height": (label["ymax"] - label["ymin"]) * 100 / download_height,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                label["name"]
+                            ]
+                        },
+                        "origin": "manual",
+                        "to_name": "image",
+                        "from_name": "label",
+                        "image_rotation": 0,
+                        "original_width": download_width,
+                        "original_height": download_height
+                    })
+
+                data = {
+                    "result": labels,
+                    "was_cancelled": False,
+                    "ground_truth": False,
+                    "task_id": label_task.id,
+                    "prediction": {},
+                    "lead_time": 5.737,
+                    "result_count": 0,
+                    "completed_by_id": self.request.user.id,
+                    "parent_prediction_id": None,
+                    "parent_annotation_id": None
+                }
+                
+                annotation_serializer = AnnotationSerializer(data=data)
+                if annotation_serializer.is_valid(raise_exception=True):
+                    obj = annotation_serializer.save()
+                    update_task = Annotation.objects.get(id=obj.id)
+                    update_task.task = label_task
+                    update_task.save()
+
+
+
         return Response({
             'task_count': len(tasks),
             'annotation_count': len(serializer.db_annotations),
@@ -443,7 +528,8 @@ class FileUploadAPI(generics.RetrieveUpdateDestroyAPIView):
 
 
 class UploadedFileResponse(generics.RetrieveAPIView):
-    permission_classes = (IsAuthenticated, )
+    # permission_classes = (IsAuthenticated, )
+    permission_classes = (AllowAny, )
 
     @swagger_auto_schema(auto_schema=None)
     def get(self, *args, **kwargs):

@@ -39,9 +39,9 @@ services:
       - db
     environment:
       - DJANGO_DB=default
-      - POSTGRE_NAME=postgres
-      - POSTGRE_USER=postgres
-      - POSTGRE_PASSWORD=
+      - POSTGRE_NAME=label_studio
+      - POSTGRE_USER=label_studio_usr
+      - POSTGRE_PASSWORD=label_studio_pwd
       - POSTGRE_PORT=5432
       - POSTGRE_HOST=db
       - LABEL_STUDIO_HOST=${LABEL_STUDIO_HOST:-}
@@ -59,6 +59,8 @@ services:
     image: postgres:11.5
     hostname: db
     restart: always
+    ports:
+      - "5432:5432"
     # Optional: Enable TLS on PostgreSQL
     # Just drop your server.crt and server.key into folder 'deploy/pgsql/certs'
     # NOTE: Both files must have permissions u=rw (0600) or less

@@ -103,6 +103,9 @@ class UserAPI(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'head', 'patch', 'delete']
 
     def get_queryset(self):
+        user_id = self.request.query_params.get("user_id")
+        if user_id:
+            return User.objects.filter(organizations=self.request.user.active_organization, id=user_id)
         return User.objects.filter(organizations=self.request.user.active_organization)
 
     @swagger_auto_schema(auto_schema=None, methods=['delete', 'post'])

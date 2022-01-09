@@ -89,6 +89,9 @@
       firstName: "{{user.first_name}}",
       lastName: "{{user.last_name}}",
       initials: "{{user.get_initials}}",
+      active_project: "{{user.active_project}}",
+      is_superuser: "{{user.is_superuser}}",
+      is_staff: "{{user.is_staff}}",
       email: "{{user.email}}",
       {% if user.avatar %}
       avatar: "{{user.avatar_url}}",

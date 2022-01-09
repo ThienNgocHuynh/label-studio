@@ -212,21 +212,23 @@ class S3ExportStorage(S3StorageMixin, ExportStorage):
 
 @receiver(post_save, sender=Annotation)
 def export_annotation_to_s3_storages(sender, instance, **kwargs):
-    project = instance.task.project
-    if hasattr(project, 'io_storages_s3exportstorages'):
-        for storage in project.io_storages_s3exportstorages.all():
-            logger.debug(f'Export {instance} to S3 storage {storage}')
-            storage.save_annotation(instance)
+    if instance.task != None:
+        project = instance.task.project
+        if hasattr(project, 'io_storages_s3exportstorages'):
+            for storage in project.io_storages_s3exportstorages.all():
+                logger.debug(f'Export {instance} to S3 storage {storage}')
+                storage.save_annotation(instance)
 
 
 @receiver(post_delete, sender=Annotation)
 def delete_annotation_from_s3_storages(sender, instance, **kwargs):
-    project = instance.task.project
-    if hasattr(project, 'io_storages_s3exportstorages'):
-        for storage in project.io_storages_s3exportstorages.all():
-            if storage.can_delete_objects:
-                logger.debug(f'Delete {instance} from S3 storage {storage}')
-                storage.delete_annotation(instance)
+    if instance.task != None:
+        project = instance.task.project
+        if hasattr(project, 'io_storages_s3exportstorages'):
+            for storage in project.io_storages_s3exportstorages.all():
+                if storage.can_delete_objects:
+                    logger.debug(f'Delete {instance} from S3 storage {storage}')
+                    storage.delete_annotation(instance)
 
 
 class S3ImportStorageLink(ImportStorageLink):

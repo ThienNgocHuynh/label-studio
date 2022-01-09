@@ -119,11 +119,12 @@ class RedisExportStorage(ExportStorage, RedisStorageMixin):
 
 @receiver(post_save, sender=Annotation)
 def export_annotation_to_s3_storages(sender, instance, **kwargs):
-    project = instance.task.project
-    if hasattr(project, 'io_storages_redisexportstorages'):
-        for storage in project.io_storages_redisexportstorages.all():
-            logger.debug(f'Export {instance} to Redis storage {storage}')
-            storage.save_annotation(instance)
+    if instance.task != None:
+        project = instance.task.project
+        if hasattr(project, 'io_storages_redisexportstorages'):
+            for storage in project.io_storages_redisexportstorages.all():
+                logger.debug(f'Export {instance} to Redis storage {storage}')
+                storage.save_annotation(instance)
 
 
 class RedisImportStorageLink(ImportStorageLink):

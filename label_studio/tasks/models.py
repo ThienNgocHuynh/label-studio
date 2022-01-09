@@ -330,16 +330,18 @@ class Annotation(AnnotationMixin, models.Model):
         return self.task.project.has_permission(user)
 
     def increase_project_summary_counters(self):
-        if hasattr(self.task.project, 'summary'):
-            logger.debug(f'Increase project.summary counters from {self}')
-            summary = self.task.project.summary
-            summary.update_created_annotations_and_labels([self])
+        if self.task != None:
+            if hasattr(self.task.project, 'summary'):
+                logger.debug(f'Increase project.summary counters from {self}')
+                summary = self.task.project.summary
+                summary.update_created_annotations_and_labels([self])
 
     def decrease_project_summary_counters(self):
-        if hasattr(self.task.project, 'summary'):
-            logger.debug(f'Decrease project.summary counters from {self}')
-            summary = self.task.project.summary
-            summary.remove_created_annotations_and_labels([self])
+        if self.task != None:
+            if hasattr(self.task.project, 'summary'):
+                logger.debug(f'Decrease project.summary counters from {self}')
+                summary = self.task.project.summary
+                summary.remove_created_annotations_and_labels([self])
 
 
 class TaskLock(models.Model):
@@ -523,7 +525,7 @@ def update_project_summary_annotations_and_is_labeled(sender, instance, created,
     """Update annotation counters in project summary"""
     instance.increase_project_summary_counters()
 
-    if created:
+    if created and instance.task:
         # If new annotation created, update task.is_labeled state
         logger.debug(f'Update task stats for task={instance.task}')
         instance.task.update_is_labeled()
@@ -573,15 +575,16 @@ def update_ml_backend(sender, instance, **kwargs):
     if instance.ground_truth:
         return
 
-    project = instance.task.project
+    if instance.task != None:
+        project = instance.task.project
 
-    if hasattr(project, 'ml_backends') and project.min_annotations_to_start_training:
-        annotation_count = Annotation.objects.filter(task__project=project).count()
+        if hasattr(project, 'ml_backends') and project.min_annotations_to_start_training:
+            annotation_count = Annotation.objects.filter(task__project=project).count()
 
-        # start training every N annotation
-        if annotation_count % project.min_annotations_to_start_training == 0:
-            for ml_backend in project.ml_backends.all():
-                ml_backend.train()
+            # start training every N annotation
+            if annotation_count % project.min_annotations_to_start_training == 0:
+                for ml_backend in project.ml_backends.all():
+                    ml_backend.train()
 
 
 def update_task_stats(task, stats=('is_labeled',), save=True):

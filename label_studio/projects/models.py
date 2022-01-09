@@ -746,6 +746,32 @@ class ProjectMember(models.Model):
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
 
+class ProjectWorkspaceList(models.Model):
+    workspace = models.CharField(
+        _('title'),
+        null=True,
+        blank=True,
+        default='',
+        max_length=settings.PROJECT_TITLE_MAX_LEN,
+        help_text=f'Workspace name. Must be between {settings.PROJECT_TITLE_MIN_LEN} and {settings.PROJECT_TITLE_MAX_LEN} characters long.',
+        validators=[
+            MinLengthValidator(settings.PROJECT_TITLE_MIN_LEN),
+            MaxLengthValidator(settings.PROJECT_TITLE_MAX_LEN),
+        ],
+    )
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('updated at'), auto_now=True)
+
+class ProjectWorkspace(models.Model):
+
+    workspace = models.ForeignKey(ProjectWorkspaceList, on_delete=models.CASCADE, related_name='workspaces', help_text='Workspace ID')
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='groups', help_text='Project ID')    
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('updated at'), auto_now=True)
+
+    class Meta:
+        unique_together = [['workspace', 'project']]
 
 class ProjectSummary(models.Model):
 
