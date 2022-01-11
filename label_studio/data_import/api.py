@@ -356,15 +356,19 @@ class ReImportAPI(ImportAPI):
                 
                 download_url = "http://3.83.11.210:8080/" + label_task.data["image"]
 
-                payload = json.dumps({
-                "presigned_url": download_url
-                })
                 if detection == 1:
+                    payload = json.dumps({
+                        "presigned_url": download_url
+                    })
                     headers = {
                         'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
                         'Content-Type': 'application/json'
                     }
                 else:
+                    payload = json.dumps({
+                        "imgUrl": download_url,
+                        "mode": "ALL"
+                    })
                     headers = {
                         'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
                         'Content-Type': 'application/json'
