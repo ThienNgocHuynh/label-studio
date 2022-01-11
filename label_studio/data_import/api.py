@@ -350,7 +350,7 @@ class ReImportAPI(ImportAPI):
                 label_task.is_labeled = True
                 label_task.save()
                 if detection == 1:
-                    url = "http://AI-LB-stg-1214660361.us-east-1.elb.amazonaws.com/sketch-2-design"
+                    url = "https://xwis7n32ie.execute-api.us-east-1.amazonaws.com/api/sketch2design-no-text"
                 else:
                     url = "http://ec2-3-212-19-35.compute-1.amazonaws.com/ocr"
                 
@@ -361,7 +361,7 @@ class ReImportAPI(ImportAPI):
                         "presigned_url": download_url
                     })
                     headers = {
-                        'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
+                        'Authorization': 'Basic dmlzaWx5OlI0cGpyd1Rya252VUpkUTQ=',
                         'Content-Type': 'application/json'
                     }
                 else:
@@ -409,7 +409,7 @@ class ReImportAPI(ImportAPI):
                             "original_height": download_height
                         })
                 else:
-                    for label in result["result"]:
+                    for label in result["data"]["result"]:
                         labels.append({
                             "id": uuid.uuid4().hex[:10],
                             "meta": {
