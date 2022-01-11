@@ -352,7 +352,7 @@ class ReImportAPI(ImportAPI):
                 if detection == 1:
                     url = "https://xwis7n32ie.execute-api.us-east-1.amazonaws.com/api/sketch2design-no-text"
                 else:
-                    url = "http://ec2-3-212-19-35.compute-1.amazonaws.com/ocr"
+                    url = "http://ec2-44-198-203-147.compute-1.amazonaws.com/ocr"
                 
                 download_url = "http://3.83.11.210:8080/" + label_task.data["image"]
 
