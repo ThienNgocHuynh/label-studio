@@ -419,10 +419,10 @@ class ReImportAPI(ImportAPI):
                             },
                             "type": "rectanglelabels",
                             "value": {
-                                "x": label["position"][0],
-                                "y": label["position"][1],
-                                "width": label["width"],
-                                "height": label["height"],
+                                "x": float(label["position"][0]),
+                                "y": float(label["position"][1]),
+                                "width": float(label["width"]),
+                                "height": float(label["height"]),
                                 "rotation": 0,
                                 "rectanglelabels": [
                                     "text"
