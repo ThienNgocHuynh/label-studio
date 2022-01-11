@@ -10,6 +10,7 @@ import Select from 'react-select';
 const detectionOptions = [
   { value: 0, label: 'Do not apply any detection' },
   { value: 1, label: 'Sketch2Design' },
+  { value: 2, label: 'TextRecognitionOnly' },
 ];
 
 const importClass = cn("upload_page");

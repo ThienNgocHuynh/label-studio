@@ -342,24 +342,33 @@ class ReImportAPI(ImportAPI):
         project.summary.update_data_columns(tasks)
         # TODO: project.summary.update_created_annotations_and_labels
 
-        detection = self.request.data.get('detection')      
+        detection = int(self.request.data.get('detection'))  
 
-        if int(detection) == 1:
+        if detection != 0:
             label_tasks = Task.objects.filter(project_id=project, is_labeled=False)
             for label_task in label_tasks:
                 label_task.is_labeled = True
                 label_task.save()
-                url = "http://AI-LB-stg-1214660361.us-east-1.elb.amazonaws.com/sketch-2-design"
+                if detection == 1:
+                    url = "http://AI-LB-stg-1214660361.us-east-1.elb.amazonaws.com/sketch-2-design"
+                else:
+                    url = "http://ec2-3-212-19-35.compute-1.amazonaws.com/ocr"
                 
-                download_url = "http://" + request.get_host() + label_task.data["image"]
+                download_url = "http://3.83.11.210:8080/" + label_task.data["image"]
 
                 payload = json.dumps({
                 "presigned_url": download_url
                 })
-                headers = {
-                    'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
-                    'Content-Type': 'application/json'
-                }
+                if detection == 1:
+                    headers = {
+                        'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
+                        'Content-Type': 'application/json'
+                    }
+                else:
+                    headers = {
+                        'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
+                        'Content-Type': 'application/json'
+                    }
 
                 req = urllib.request.urlopen(download_url)
                 arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
@@ -372,28 +381,56 @@ class ReImportAPI(ImportAPI):
                 result = json.loads(label_response.text)
 
                 labels = []
-
-                for label in result["labels"]:
-                    labels.append({
-                        "id": uuid.uuid4().hex[:10],
-                        "type": "rectanglelabels",
-                        "value": {
-                            "x": label["xmin"] * 100 / download_width,
-                            "y": label["ymin"] * 100 / download_height,
-                            "width": (label["xmax"] - label["xmin"]) * 100 / download_width,
-                            "height": (label["ymax"] - label["ymin"]) * 100 / download_height,
-                            "rotation": 0,
-                            "rectanglelabels": [
-                                label["name"]
-                            ]
-                        },
-                        "origin": "manual",
-                        "to_name": "image",
-                        "from_name": "label",
-                        "image_rotation": 0,
-                        "original_width": download_width,
-                        "original_height": download_height
-                    })
+                
+                if detection == 1:
+                    for label in result["labels"]:
+                        labels.append({
+                            "id": uuid.uuid4().hex[:10],
+                            "type": "rectanglelabels",
+                            "value": {
+                                "x": label["xmin"] * 100 / download_width,
+                                "y": label["ymin"] * 100 / download_height,
+                                "width": (label["xmax"] - label["xmin"]) * 100 / download_width,
+                                "height": (label["ymax"] - label["ymin"]) * 100 / download_height,
+                                "rotation": 0,
+                                "rectanglelabels": [
+                                    label["name"]
+                                ]
+                            },
+                            "origin": "manual",
+                            "to_name": "image",
+                            "from_name": "label",
+                            "image_rotation": 0,
+                            "original_width": download_width,
+                            "original_height": download_height
+                        })
+                else:
+                    for label in result["result"]:
+                        labels.append({
+                            "id": uuid.uuid4().hex[:10],
+                            "meta": {
+                                "text": [
+                                    label["text"]
+                                ]
+                            },
+                            "type": "rectanglelabels",
+                            "value": {
+                                "x": label["position"][0],
+                                "y": label["position"][1],
+                                "width": label["width"],
+                                "height": label["height"],
+                                "rotation": 0,
+                                "rectanglelabels": [
+                                    "text"
+                                ]
+                            },
+                            "origin": "manual",
+                            "to_name": "image",
+                            "from_name": "label",
+                            "image_rotation": 0,
+                            "original_width": download_width,
+                            "original_height": download_height
+                        })
 
                 data = {
                     "result": labels,
@@ -414,8 +451,6 @@ class ReImportAPI(ImportAPI):
                     update_task = Annotation.objects.get(id=obj.id)
                     update_task.task = label_task
                     update_task.save()
-
-
 
         return Response({
             'task_count': len(tasks),
