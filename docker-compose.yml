@@ -4,8 +4,8 @@ services:
   nginx:
     image: nginx:1.21
     ports:
-      - "8080:80"
-      - "8081:443"
+      - "80:80"
+      - "443:443"
     depends_on:
       - app
     environment:
