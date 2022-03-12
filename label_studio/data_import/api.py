@@ -352,9 +352,9 @@ class ReImportAPI(ImportAPI):
                 if detection == 1:
                     url = settings.SKETCH2DESIGN
                 elif detection == 2:
-                    url = settings.OCR
-                else:
                     url = settings.SCREENSHOT2DESIGN
+                else:
+                    url = settings.OCR
                 
                 headers = settings.HEADERS
                 
@@ -382,7 +382,7 @@ class ReImportAPI(ImportAPI):
 
                 labels = []
                 
-                if detection == 2:
+                if detection == 3:
                     for label in result["data"]["result"]:
                         labels.append({
                             "id": uuid.uuid4().hex[:10],
