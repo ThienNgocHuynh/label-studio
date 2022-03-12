@@ -35,6 +35,19 @@ FRONTEND_SENTRY_ENVIRONMENT = get_env('FRONTEND_SENTRY_ENVIRONMENT', 'opensource
 
 EDITOR_KEYMAP = json.dumps(get_env("EDITOR_KEYMAP"))
 
+HEADERS = {
+    'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
+    'Content-Type': 'application/json'
+}
+
+SKETCH2DESIGN = "http://ec2-3-212-19-35.compute-1.amazonaws.com/sketch-2-design"
+
+SCREENSHOT2DESIGN = "http://ec2-3-212-19-35.compute-1.amazonaws.com/screenshot-2-design"
+
+OCR = "http://ec2-44-198-203-147.compute-1.amazonaws.com/ocr"
+
+DOWNLOAD_URL = "http://localhost"
+
 from label_studio import __version__
 from label_studio.core.utils import sentry
 sentry.init_sentry(release_name='label-studio', release_version=__version__)

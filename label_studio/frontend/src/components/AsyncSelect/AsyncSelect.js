@@ -9,6 +9,21 @@ export const AsyncSelect = () => {
   const config = useConfig();
   
   const handleChange = (newValue, actionMeta) => {
+    setTimeout(() => {
+      const menuEl = document.querySelector(`#${this.id} [class*="-menu"]`);
+      const menuListEl = document.querySelector(
+        `#${this.id} [class*="MenuList"]`,
+      );
+
+      if (
+        menuListEl.children.length === 1 &&
+        menuListEl.children[0].innerHTML === ""
+      ) {
+        menuEl.style.display = "none";
+      } else {
+        menuEl.style.display = "block";
+      }
+    });
     localStorage.setItem('workspace-id', newValue.value);
     localStorage.setItem('workspace-name', newValue.label);
     history.push(`/projects?`);
@@ -75,6 +90,6 @@ export const AsyncSelect = () => {
   return ( !(config.user.is_superuser === "False" && config.user.is_staff === "False") ? 
     <AsyncCreatableSelect defaultInputValue={localStorage.getItem('workspace-name')} onChange={handleChange} cacheOptions defaultOptions loadOptions={promiseOptions} onCreateOption={handleCreate}/> 
     :
-    <AsyncCreatableSelect defaultInputValue={localStorage.getItem('workspace-name')} onChange={handleChange} cacheOptions defaultOptions loadOptions={promiseOptions} noOptionsMessage={() => null} promptTextCreator={() => false}/>
+    <AsyncCreatableSelect defaultInputValue={localStorage.getItem('workspace-name')} onChange={handleChange} cacheOptions defaultOptions loadOptions={promiseOptions} isValidNewOption={() => false} noOptionsMessage={() => null} promptTextCreator={() => false} formatCreateLabel={() => undefined}/>
   );
 };

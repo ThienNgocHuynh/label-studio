@@ -350,29 +350,25 @@ class ReImportAPI(ImportAPI):
                 label_task.is_labeled = True
                 label_task.save()
                 if detection == 1:
-                    url = "https://xwis7n32ie.execute-api.us-east-1.amazonaws.com/api/sketch2design-no-text"
+                    url = settings.SKETCH2DESIGN
+                elif detection == 2:
+                    url = settings.OCR
                 else:
-                    url = "http://ec2-44-198-203-147.compute-1.amazonaws.com/ocr"
+                    url = settings.SCREENSHOT2DESIGN
                 
-                download_url = "http://3.83.11.210:8080/" + label_task.data["image"]
+                headers = settings.HEADERS
+                
+                download_url = settings.DOWNLOAD_URL + label_task.data["image"]
 
                 if detection == 1:
                     payload = json.dumps({
                         "presigned_url": download_url
                     })
-                    headers = {
-                        'Authorization': 'Basic dmlzaWx5OlI0cGpyd1Rya252VUpkUTQ=',
-                        'Content-Type': 'application/json'
-                    }
                 else:
                     payload = json.dumps({
                         "imgUrl": download_url,
                         "mode": "ALL"
                     })
-                    headers = {
-                        'Authorization': 'Basic dWlzcHJpbnQ6a21zMTIz',
-                        'Content-Type': 'application/json'
-                    }
 
                 req = urllib.request.urlopen(download_url)
                 arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
@@ -386,29 +382,7 @@ class ReImportAPI(ImportAPI):
 
                 labels = []
                 
-                if detection == 1:
-                    for label in result["labels"]:
-                        labels.append({
-                            "id": uuid.uuid4().hex[:10],
-                            "type": "rectanglelabels",
-                            "value": {
-                                "x": label["xmin"] * 100 / download_width,
-                                "y": label["ymin"] * 100 / download_height,
-                                "width": (label["xmax"] - label["xmin"]) * 100 / download_width,
-                                "height": (label["ymax"] - label["ymin"]) * 100 / download_height,
-                                "rotation": 0,
-                                "rectanglelabels": [
-                                    label["name"]
-                                ]
-                            },
-                            "origin": "manual",
-                            "to_name": "image",
-                            "from_name": "label",
-                            "image_rotation": 0,
-                            "original_width": download_width,
-                            "original_height": download_height
-                        })
-                else:
+                if detection == 2:
                     for label in result["data"]["result"]:
                         labels.append({
                             "id": uuid.uuid4().hex[:10],
@@ -435,7 +409,29 @@ class ReImportAPI(ImportAPI):
                             "original_width": download_width,
                             "original_height": download_height
                         })
-
+                else:
+                    for label in result["labels"]:
+                        labels.append({
+                            "id": uuid.uuid4().hex[:10],
+                            "type": "rectanglelabels",
+                            "value": {
+                                "x": label["xmin"] * 100 / download_width,
+                                "y": label["ymin"] * 100 / download_height,
+                                "width": (label["xmax"] - label["xmin"]) * 100 / download_width,
+                                "height": (label["ymax"] - label["ymin"]) * 100 / download_height,
+                                "rotation": 0,
+                                "rectanglelabels": [
+                                    label["name"]
+                                ]
+                            },
+                            "origin": "manual",
+                            "to_name": "image",
+                            "from_name": "label",
+                            "image_rotation": 0,
+                            "original_width": download_width,
+                            "original_height": download_height
+                        })
+                    
                 data = {
                     "result": labels,
                     "was_cancelled": False,

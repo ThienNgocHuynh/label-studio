@@ -122,7 +122,6 @@ ProjectsPage.context = ({ openModal, showButton }) => {
   const api = useAPI();
   const history = useHistory();
   const handleOnClick = (type) => () => {
-    console.log(111);
     confirm({
       title: "Action confirmation",
       body: "You're about to delete all things. This action cannot be undone.",
